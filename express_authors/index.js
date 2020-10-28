@@ -11,8 +11,8 @@ app.get('/', (req, res) => {
   });
 
 
-app.get('/author/:authorsOrder', (req, res) => {
-  res.send(`Authors API :${authorsOrder[req.params.authorsOrder]}`);
+app.get('/authors/:authorsOrder', (req, res) => {
+  res.send(`authors : ${authorsOrder[req.params.authorsOrder]}`);
 });
 // app.get('/authors/:1', (req, res) => {
 //     res.send('Lawrence Nowell, UK' );
