@@ -3,8 +3,8 @@ const port = 3000;
 
 const app = express();
 
-const authorsOrder = ['Lawrence Nowell, UK','William Shakespeare, UK','Charles Dickens, US','Oscar Wilde, UK'];
-// console.log(authors);
+const authorsOrder = ['','Lawrence Nowell, UK','William Shakespeare, UK','Charles Dickens, US','Oscar Wilde, UK'];
+
 
 app.get('/', (req, res) => {
     res.send('Authors API' );
