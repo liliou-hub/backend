@@ -18,15 +18,26 @@ app.use(express.static('views'));
 
 app.get('/', (req, res) => {
     res.render('home', {
-        title: 'Welcome to express simple form'
-    });
-
+        title: 'Welcome to express simple form',
+        students: ['Jean', 'Binta', 'Agathe', 'Adil']
+   
+});  
 });
+
+
+
 
 app.use(express.urlencoded({ extended: true }));
 
 app.use(express.json());
 
+
+
+app.post('/students/add', (req, res) => {
+    var username = req.body.username;
+    students.push(username);
+    return res.send(`User ${username}  has been added successfully`);
+    })
 
 
 
