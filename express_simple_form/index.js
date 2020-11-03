@@ -25,8 +25,6 @@ app.get('/', (req, res) => {
 });
 
 
-
-
 app.use(express.urlencoded({ extended: true }));
 
 app.use(express.json());
@@ -37,13 +35,10 @@ app.post('/students/add', (req, res) => {
     var username = req.body.username;
     console.log(username);
     students.push(username);
-    res.render ('studentsadded', {
+    res.render('studentsadded', {
         username: username
     })
 })
-
-
-
 
 
 app.listen(port, () => {
