@@ -11,7 +11,7 @@ app.set('view engine', 'handlebars');
 
 app.get('/:lang?', (req, res) => {
     res.render('home', {
-       lang:fr
+        lang: fr
 
     });
 
