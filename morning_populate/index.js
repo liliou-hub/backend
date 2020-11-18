@@ -40,7 +40,7 @@ async function add() {
         .populate('address')
         .exec((err, student1) => {
             console.log('The infos are', student1)
-            
+
         });
 
 
