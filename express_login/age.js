@@ -1,12 +1,14 @@
+
 const ageCalculator = function (date) {
-    var today = new Date();
-    var birthday = new Date(date)
-    var age = 0;
+  var today = new Date();
+  var birthday = new Date(date)
+  var age = 0;
 
-    age = today.getFullYear() - birthday.getFullYear();
+  age = today.getFullYear() - birthday.getFullYear();
 
-    return age;
+  return age;
 }; ageCalculator()
+// console.log(ageCalculator("2004-06-02"));
 
 
 module.exports = ageCalculator;
