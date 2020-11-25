@@ -2,8 +2,11 @@ const mongoose = require('mongoose');
 const passportLocalMongoose = require('passport-local-mongoose');
 
 const ProductSchema = new mongoose.Schema({
-    productname: String,
-   
+    productName: String,
+    productPrice:Number,
+    productPicture:String,
+    tagProduct:String
+
     
 });
 

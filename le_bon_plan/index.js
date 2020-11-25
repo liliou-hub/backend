@@ -3,6 +3,7 @@ const exphbs = require("express-handlebars");
 const expressSession = require("express-session");
 const MongoStore = require("connect-mongo")(expressSession);
 const mongoose = require("mongoose");
+
 const { session } = require("passport");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
@@ -12,12 +13,34 @@ const bodyParser = require('body-parser');
 const expressValidator = require("express-validator");
 const validationResult = expressValidator.validationResult;
 const body = expressValidator.body;
+const multer = require("multer");
+// const upload = multer({ dest: 'public/uploads/' });
+
+let storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "public/uploads");
+  },
+  filename: function (req, file, cb) {
+    let ext = file.originalname.substring(
+      file.originalname.lastIndexOf("."),
+      file.originalname.length
+    );
+    cb(null, Date.now() + ext);
+  },
+});
+
+let upload = multer({ storage: storage });
 
 const port = process.env.PORT || 3000;
 const app = express();
 
+
 let usersRoutes = require('./controllers/users');
 let productsRoutes = require('./controllers/products');
+
+app.use('/users', usersRoutes);
+app.use('/products', productsRoutes);
+
 
 mongoose.connect(
   process.env.MONGODB_URI ||
@@ -29,13 +52,16 @@ mongoose.connect(
   }
 );
 
-
-
-app.engine("handlebars", exphbs());
+app.engine("handlebars", exphbs({
+  layoutsDir: __dirname + '/views/layouts/',
+  partialsDir: __dirname + '/views/partials/'
+}));
 app.set("view engine", "handlebars");
+
+app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.static('public'));
+
 
 // enable session management
 app.use(
@@ -55,34 +81,7 @@ app.use('/users', usersRoutes);
 app.use('/products', productsRoutes);
 
 // Passport configuration
-passport.use(
-  new LocalStrategy(
-    // User.authenticate()))
-    {
-      usernameField: "username",
-      passwordField: "password",
-    },
-    async (username, password, done) => {
-      // console.log("email", email);
-      console.log("password", password);
-      console.log("done", done);
-      try {
-        const user = await User.findOne({ username })
-        if (!user) return done(null, false);
-        if (user.password == password)
-          return done(null, user)
-
-      } catch (err) {
-        console.error(err);
-        done(err)
-      }
-    }
-  )
-);
-
-
-
-
+passport.use(new LocalStrategy(User.authenticate()))
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
@@ -91,87 +90,111 @@ passport.deserializeUser(User.deserializeUser());
 
 
 app.get("/", (req, res) => {
-  console.log("GET /");
-  res.render("home");
+  // console.log("GET /");
+  res.render("home", {
+    isLog: req.isAuthenticated(),
+    username: req.user ? req.user.username : null,
+    profilPicture: req.user ? req.user.profilPicture : null,
+
+  });
 });
 
 
+
 app.get("/profil", (req, res) => {
-  console.log("GET /profil");
+  // console.log("GET /profil");
   if (req.isAuthenticated()) {
-    console.log(req.user);
+    // console.log(req.user);
     res.render("profil", {
       username: req.user.username,
-
+      firstname: req.user.firstname,
+      surname: req.user.surname,
+      isLog: req.isAuthenticated(),
+      profilPicture: req.user.profilPicture
     });
   } else {
     res.redirect("/");
   }
 });
 
-// app.get("/paris", async (req, res) => {
+app.get("/paris", async (req, res) => {
 
-//     if (req.isAuthenticated()) {
-//         res.redirect("/profil");
-//     } else {
-//         res.render("paris");
-//     }
-// });
-
-
-// app.get("/lyon", (req, res) => {
-
-//     if (req.isAuthenticated()) {
-//         res.redirect("/profil");
-//     } else {
-//         res.render("lyon");
-//     }
-// });
+  if (req.isAuthenticated()) {
+    res.redirect("/profil");
+  } else {
+    res.render("paris");
+  }
+});
 
 
-// app.get("/marseille", (req, res) => {
+app.get("/lyon", (req, res) => {
 
-//     if (req.isAuthenticated()) {
-//         res.redirect("/profil");
-//     } else {
-//         res.render("marseille");
-//     }
-// });
+  if (req.isAuthenticated()) {
+    res.redirect("/profil");
+  } else {
+    res.render("lyon");
+  }
+});
+
+
+app.get("/marseille", (req, res) => {
+  if (req.isAuthenticated()) {
+    res.redirect("/profil");
+  } else {
+    res.render("marseille");
+  }
+});
 
 
 
 
 
 app.get("/signup", async (req, res) => {
-
   if (req.isAuthenticated()) {
-    res.redirect("/profil");
+    res.redirect("/");
   } else {
     res.render("signup");
   }
 });
 
-app.post("/signup", (req, res, next) => {
-  const { username, password, firstname, surname } = req.body;
-  User.create({
-    username,
-    password,
 
-  }, (err, user) => {
-    if (err) {
-      return res.status(500).send(err)
+
+app.post("/signup", upload.single("avatar"), async (req, res, next) => {
+  console.log('req.body', req.body);
+  const { username, surname, password, firstname } = req.body;
+  User.register(
+    new User({
+      username,
+      surname,
+      password,
+      firstname,
+      profilePicture: req.file.filename,
+    }),
+    password, // password will be hashed
+    (err, user) => {
+      if (err) {
+        console.log("/signup user register err", err);
+        return res.render("signup");
+      } else {
+        passport.authenticate("local")(req, res, () => {
+          res.redirect("/profil");
+        });
+      }
     }
-    next()
-  })
-}, passport.authenticate("local"), (req, res) => res.redirect("/profil"))
+  );
+});
 
 
 
+app.post('/upload', upload.single('image'), (req, res) => {
+  console.log(req.file);
+});
 
 app.get("/login", (req, res) => {
 
   if (req.isAuthenticated()) {
-    res.redirect("/profil");
+    res.redirect("/profil", {
+    });
   } else {
     res.render("login");
   }
@@ -186,31 +209,47 @@ app.post("/login", passport.authenticate("local", {
 );
 
 
-
-app.post('/profil',
-  body("username").isEmail(),
-  body("password").isLength({ min: 1 }),
-  (req, res) => {
-    const errors = validationResult(req);
-    if (errors.isEmpty() === false) {
-      res.json({
-        errors: errors.array() // to be used in a json loop
-      });
-      return;
-    } else {
-      res.json({
-        success: true,
-        message: 'User will be saved'
-      });
-    }
+app.get("/admin", (req, res) => {
+  // console.log('GET/admin');
+  if (req.isAuthenticated()) {
+    res.render("admin", {
+      isLog: req.isAuthenticated(),
+      username: req.user.username,
+      profilPicture: req.user.profilPicture
+    });
+  } else {
+    res.redirect("home");
   }
-);
+});
+
+
+app.post("/admin", upload.single("avatar"), async (req, res, next) => {
+  console.log('req.body', req.body);
+  const { productName, productPrice, tagProduct } = req.body;
+
+  Product.register(
+    new Product({
+      productName,
+      productPrice,
+      productPicture: req.file.filename,
+      tagProduct,
+      isLog: req.isAuthenticated(),
+    }),
+    (err, product) => {
+      console.log("/signup Product register err", err);
+      res.render("/products");
+    }
+  );
+});
+
+
 
 app.get("/logout", (req, res) => {
 
   req.logout();
   res.redirect("/");
 });
+
 
 app.listen(port, () => {
   console.log(`Server started on port: ${port}`);

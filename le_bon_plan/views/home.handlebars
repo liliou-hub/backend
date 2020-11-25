@@ -1,16 +1,21 @@
-<header style='background-color: blue'>LE BON PLAN</header>
+{{#if isLog }}
+{{> navbarLogin }}
+{{else }}
+{{> navbarLogout }}
+{{/if}}
 
-<nav style="background-color: aqua;">
-    <ul>
-        <li>
-            <a href='/login'>Login</a>
-        </li>
-        <li>
-            <a href='/signup'>Signup</a>
-        </li>
-    </ul>
+<nav>
+    <li class="nav-item dropdown">
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <a class="dropdown-item" href='/Paris'>Paris</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href='/Lyon'>Lyon</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href='/Marseille'>Marseille</a>
+        </div>
+    </li>
+    
 </nav>
-
 
 
 <ul>
@@ -25,3 +30,7 @@
     </li>
 
 </ul>
+{{!-- <div>
+   <script src="cmap/france-map.js"></script>
+<script>francefree();</script>
+</div> --}}
