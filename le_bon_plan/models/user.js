@@ -10,7 +10,8 @@ const UserSchema = new mongoose.Schema({
     },   
     firstname:String,
     surname:String,
-    profilPicture: String 
+    profilPicture: String,
+ 
 });
 
 UserSchema.plugin(passportLocalMongoose);
@@ -18,3 +19,5 @@ UserSchema.plugin(passportLocalMongoose);
 const User = mongoose.model('User', UserSchema);
 
 module.exports = User;
+
+

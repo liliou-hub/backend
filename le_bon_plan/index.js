@@ -14,7 +14,7 @@ const expressValidator = require("express-validator");
 const validationResult = expressValidator.validationResult;
 const body = expressValidator.body;
 const multer = require("multer");
-// const upload = multer({ dest: 'public/uploads/' });
+
 
 let storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -146,9 +146,6 @@ app.get("/marseille", (req, res) => {
 });
 
 
-
-
-
 app.get("/signup", async (req, res) => {
   if (req.isAuthenticated()) {
     res.redirect("/");
@@ -168,7 +165,7 @@ app.post("/signup", upload.single("avatar"), async (req, res, next) => {
       surname,
       password,
       firstname,
-      profilePicture: req.file.filename,
+      profilPicture: req.file.filename,
     }),
     password, // password will be hashed
     (err, user) => {
@@ -186,7 +183,7 @@ app.post("/signup", upload.single("avatar"), async (req, res, next) => {
 
 
 
-app.post('/upload', upload.single('image'), (req, res) => {
+app.post('/upload', upload.single('avatar'), (req, res) => {
   console.log(req.file);
 });
 
@@ -223,24 +220,76 @@ app.get("/admin", (req, res) => {
 });
 
 
-app.post("/admin", upload.single("avatar"), async (req, res, next) => {
+app.post("/admin", upload.single("productPicture"), async (req, res, next) => {
   console.log('req.body', req.body);
   const { productName, productPrice, tagProduct } = req.body;
+ 
+  try {
 
-  Product.register(
-    new Product({
+    await Product.create(
+      new Product({
+        productName,
+        productPrice,
+        productPicture: req.file.filename,
+        tagProduct,
+      }));
+
+
+    res.redirect("product");
+  } catch (error) {
+    console.log('error', error);
+    res.status(500).json(error)
+  }
+
+});
+
+
+
+app.get("/product", (req, res) => {
+  const { productName, tagProduct, productPrice, } = req.body;
+  console.log('fOUUUUUUUUUUUUUUUUUUUUUUUUle', req);
+  if (req.isAuthenticated()) {
+    res.render("product", {
+      productName,
+      productPrice,
+      tagProduct,
+      // productPicture: req.file.filename,
+      isLog: req.isAuthenticated(),
+      username: req.user.username,
+      profilPicture: req.user.profilPicture
+    });
+  } else {
+    res.redirect("/");
+  }
+});
+
+
+app.post('/product',upload.single("avatar"),(req, res,next) => {
+  console.log('req du body', req.body)
+  const { productName, tagProduct, productPrice, } = req.body;
+  console.log('fiiiiiiiiiiiiiiiiiiiiiiiiiiile', req.file);
+
+  try {
+
+    res.render('product', {
       productName,
       productPrice,
       productPicture: req.file.filename,
       tagProduct,
-      isLog: req.isAuthenticated(),
-    }),
-    (err, product) => {
-      console.log("/signup Product register err", err);
-      res.render("/products");
-    }
-  );
+    })
+  } catch (error) {
+    console.log('error', error);
+    res.status(500).json(error)
+  }
+
 });
+
+
+app.post('/upload', upload.single('productPicture'), (req, res) => {
+  console.log(req.file);
+});
+
+
 
 
 
@@ -254,3 +303,5 @@ app.get("/logout", (req, res) => {
 app.listen(port, () => {
   console.log(`Server started on port: ${port}`);
 });
+
+
