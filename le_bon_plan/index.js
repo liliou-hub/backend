@@ -13,6 +13,10 @@ const bodyParser = require('body-parser');
 const expressValidator = require("express-validator");
 const validationResult = expressValidator.validationResult;
 const body = expressValidator.body;
+require('dotenv').config();
+
+const { PORT, MONGODB_URI, API_KEY } = process.env;
+
 const multer = require("multer");
 
 
@@ -30,6 +34,7 @@ let storage = multer.diskStorage({
 });
 
 let upload = multer({ storage: storage });
+
 
 const port = process.env.PORT || 3000;
 const app = express();
@@ -223,7 +228,7 @@ app.get("/admin", (req, res) => {
 app.post("/admin", upload.single("productPicture"), async (req, res, next) => {
   console.log('req.body', req.body);
   const { productName, productPrice, tagProduct } = req.body;
- 
+
   try {
 
     await Product.create(
@@ -264,7 +269,7 @@ app.get("/product", (req, res) => {
 });
 
 
-app.post('/product',upload.single("avatar"),(req, res,next) => {
+app.post('/product', upload.single("avatar"), (req, res, next) => {
   console.log('req du body', req.body)
   const { productName, tagProduct, productPrice, } = req.body;
   console.log('fiiiiiiiiiiiiiiiiiiiiiiiiiiile', req.file);
